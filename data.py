@@ -14,15 +14,27 @@ youtube = build("youtube", "v3", developerKey=API_KEY)
 
 
 # Search for YouTube Shorts
-search_response = youtube.search().list(
-    part="id",
-    q="shorts",
-    type="video",
-    videoDuration="short",
-    maxResults=50,
-    relevanceLanguage="en",
-    regionCode="US",
-).execute()
+video_ids = []
+next_page_token = None
+
+for _ in range(4):  # 4 pages * 50 = ~200 videos
+    search_response = youtube.search().list(
+        part="id",
+        q="shorts",
+        type="video",
+        videoDuration="short",
+        maxResults=50,
+        relevanceLanguage="en",
+        regionCode="US",
+        pageToken=next_page_token
+    ).execute()
+
+    for item in search_response["items"]:
+        video_ids.append(item["id"]["videoId"])
+
+    next_page_token = search_response.get("nextPageToken")
+    if not next_page_token:
+        break
 
 # Extract video IDs
 video_ids = []
