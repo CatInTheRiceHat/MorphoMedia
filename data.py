@@ -36,12 +36,6 @@ for _ in range(4):  # 4 pages * 50 = ~200 videos
     if not next_page_token:
         break
 
-# Extract video IDs
-video_ids = []
-for item in search_response["items"]:
-    video_ids.append(item["id"]["videoId"])
-
-
 # Get video details
 video_response = youtube.videos().list(
     part="snippet,statistics,contentDetails",
