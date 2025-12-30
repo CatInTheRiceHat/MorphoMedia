@@ -3,13 +3,11 @@ This program collects public YouTube Shorts data
 and saves it so it can be used for my algorithm project.
 """
 
-# Import tools we need
 from googleapiclient.discovery import build  # YouTube API
 import pandas as pd                          # Tables / CSV files
 import isodate                               # Converts video time format
 
 API_KEY = "AIzaSyBdINUTiFBl_YFRPf8CpisXr-_D77IDKQg"
-
 
 def chunk_list(lst, size):
     """Split a list into smaller chunks to avoid API limits."""
@@ -89,8 +87,8 @@ def load_and_prepare_data():
 
     df["topic"] = ""        # content category
     df["tone"] = ""         # positive / neutral / negative
-    df["prosocial"] = 0     # 1 = prosocial, 0 = not
-    df["risk"] = 0          # risk level
+    df["prosocial"] = 0     # 1 = prosocial, 0 = not prosocial
+    df["risk"] = 0          # 1 = risky, 0 = not risky
 
     df.to_csv("shorts_dataset_tagged.csv", index=False)
     print("Saved shorts_dataset_tagged.csv")
