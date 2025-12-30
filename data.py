@@ -90,8 +90,8 @@ def load_and_prepare_data():
     df["prosocial"] = 0     # 1 = prosocial, 0 = not prosocial
     df["risk"] = 0          # 1 = risky, 0 = not risky
 
-    df.to_csv("shorts_dataset_tagged.csv", index=False)
-    print("Saved shorts_dataset_tagged.csv")
+    df.to_csv("shorts_dataset_to_tag.csv", index=False)
+    print("Saved shorts_dataset_to_tag.csv")
 
     return df
 
