@@ -45,6 +45,7 @@ def get_api_key():
         )
     return api_key
 
+
 def chunk_list(lst, size):
     """
     Split a list into smaller chunks to avoid API limits.
@@ -52,11 +53,13 @@ def chunk_list(lst, size):
     for i in range(0, len(lst), size):
         yield lst[i:i + size]
 
+
 def build_youtube_client():
     """
     Create a YouTube API client.
     """
     return build("youtube", "v3", developerKey=get_api_key())
+
 
 def safe_parse_duration_seconds(duration_iso):
     """
@@ -141,6 +144,7 @@ def fetch_youtube_shorts(query=DEFAULT_QUERY, max_videos=DEFAULT_MAX_VIDEOS, reg
 
     return df
 
+
 def create_tagging_template(input_csv=RAW_CSV, output_csv=TO_TAG_CSV):
     """
     Loads the raw dataset CSV and adds columns for manual tagging.
@@ -160,6 +164,7 @@ def create_tagging_template(input_csv=RAW_CSV, output_csv=TO_TAG_CSV):
     print(f"Saved {output_csv}")
 
     return df
+
 
 if __name__ == "__main__":
     fetch_youtube_shorts()

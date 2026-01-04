@@ -24,6 +24,7 @@ WEIGHTS: Dict[str, Dict[str, float]] = {
 
 NIGHT_MODE_K = 15
 
+
 def night_mode_settings(w, risk_boost=0.05):
     """
     Night Mode settings:
@@ -41,12 +42,14 @@ def night_mode_settings(w, risk_boost=0.05):
 
     return w2, NIGHT_MODE_K
 
+
 def get_mode_settings(preset, night_mode=False, k_default=100):
     """
     Returns (weights, k) for a given preset and mode.
     """
     if preset not in WEIGHTS:
-        raise KeyError(f"Unknown preset: {preset}. Options: {list(WEIGHTS.keys())}")
+        raise KeyError(
+            f"Unknown preset: {preset}. Options: {list(WEIGHTS.keys())}")
 
     w = WEIGHTS[preset]
     k = k_default
@@ -63,18 +66,21 @@ def get_mode_settings(preset, night_mode=False, k_default=100):
 
 REQUIRED_COLUMNS = {"view_count", "topic", "channel", "prosocial", "risk"}
 
+
 def validate_and_clean(df: pd.DataFrame) -> pd.DataFrame:
     """
     Ensures required columns exist and prosocial/risk are numeric 0/1.
     """
     missing = REQUIRED_COLUMNS - set(df.columns)
     if missing:
-        raise ValueError(f"Dataset is missing required columns: {sorted(missing)}")
+        raise ValueError(
+            f"Dataset is missing required columns: {sorted(missing)}")
 
     out = df.copy()
 
     # Force prosocial/risk into numeric (0/1-ish). Fill blanks with 0.
-    out["prosocial"] = pd.to_numeric(out["prosocial"], errors="coerce").fillna(0)
+    out["prosocial"] = pd.to_numeric(
+        out["prosocial"], errors="coerce").fillna(0)
     out["risk"] = pd.to_numeric(out["risk"], errors="coerce").fillna(0)
 
     # Optional: clamp into [0,1] if needed
@@ -82,6 +88,7 @@ def validate_and_clean(df: pd.DataFrame) -> pd.DataFrame:
     out["risk"] = out["risk"].clip(0, 1)
 
     return out
+
 
 def add_engagement(df: pd.DataFrame) -> Tuple[pd.DataFrame, float]:
     """
@@ -109,12 +116,14 @@ def diversity_counter(topic: str, channel: str, recent_topics: List[str], recent
     channel_new = 1 if channel not in recent_channels else 0
     return 0.5 * topic_new + 0.5 * channel_new
 
+
 def score_parts(e: float, d: float, p: float, r: float, w: Dict[str, float]) -> float:
     """
     Total score:
     e*w_e + d*w_d + p*w_p - r*w_r
     """
     return (e * w["e"]) + (d * w["d"]) + (p * w["p"]) - (r * w["r"])
+
 
 def would_break_streak(recent_list: List[str], candidate_value: str, max_streak: int = 2) -> bool:
     """
@@ -181,7 +190,8 @@ def build_prototype_feed(
                 score_list.append(float("-inf"))
                 continue
 
-            d = diversity_counter(topic, channel, window_topics, window_channels)
+            d = diversity_counter(
+                topic, channel, window_topics, window_channels)
             s = score_parts(
                 e=getattr(row, "engagement"),
                 d=d,
