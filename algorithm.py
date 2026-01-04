@@ -16,7 +16,7 @@ def add_engagement(df):
     return df, max_views
 
 
-def rank_baseline(df, k=20):
+def rank_baseline(df, k=100):
     """Return top-k videos ranked by engagement only."""
     return df.sort_values("engagement", ascending=False).head(k)
 
@@ -49,7 +49,7 @@ def would_break_streak(recent_list, candidate_value, max_streak=2):
     return all(x == candidate_value for x in tail)
 
 
-def build_prototype_feed(df, weights=WEIGHTS["entertainment"], k=20, recent_window=10):
+def build_prototype_feed(df, weights=WEIGHTS["entertainment"], k=100, recent_window=10):
     """
     Builds a prototype feed one-by-one so diversity can depend on recent history.
     Adds columns: diversity and score to the returned feed.

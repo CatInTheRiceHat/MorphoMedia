@@ -95,7 +95,6 @@ def load_and_prepare_data():
 
     return df
 
-
 # Only runs when this file is executed directly
 if __name__ == "__main__":
     fetch_youtube_shorts()
