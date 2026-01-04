@@ -1,51 +1,78 @@
 """
-This file contains evaluation metrics for my recommendation algorithm.
-It measures whether a generated feed meets my design criteria, including:
-- diversity@10 (unique topics in the top 10 posts)
-- repetition caps (max streaks for topic and creator)
-- prosocial ratio (percent of prosocial posts)
+Evaluation metrics for the Healthy Feed Algorithm project.
+
+Metrics:
+- Diversity@k: number of unique topics in the top k posts
+- Max streak: longest consecutive streak of the same value in a column
+- Prosocial ratio: fraction of posts labeled prosocial
 """
 
 import pandas as pd
 
-def diversity_at_k(feed: pd.DataFrame, k: int = 10, topic_col: str = "topic") -> int:
+
+# -----------------------------
+# Diversity
+# -----------------------------
+
+def diversity_at_k(feed, k=10, topic_col="topic"):
     """
     Diversity@k:
     Counts how many unique topics appear in the top k recommended posts.
     """
+    if feed is None or len(feed) == 0:
+        return 0
+    if topic_col not in feed.columns:
+        raise ValueError(f"Missing column '{topic_col}' in feed")
+
+    k = min(k, len(feed))
     return int(feed.head(k)[topic_col].nunique(dropna=True))
 
 
-def max_streak(feed: pd.DataFrame, col: str) -> int:
+# -----------------------------
+# Streaks / repetition caps
+# -----------------------------
+
+def max_streak(feed, col):
     """
-    Repetition / Streak:
+    Max streak:
     Finds the longest consecutive streak of the same value in a column.
     """
-    if feed.empty:
+    if feed is None or len(feed) == 0:
         return 0
+    if col not in feed.columns:
+        raise ValueError(f"Missing column '{col}' in feed")
 
     vals = feed[col].astype(str).tolist()
+
     best = 1
     cur = 1
 
     for i in range(1, len(vals)):
-        # If the current value matches the previous, streak continues
         if vals[i] == vals[i - 1]:
             cur += 1
-            best = max(best, cur)
+            if cur > best:
+                best = cur
         else:
-            # Otherwise, reset streak count
             cur = 1
 
     return best
 
 
-def prosocial_ratio(feed: pd.DataFrame, prosocial_col: str = "prosocial") -> float:
-    """
-    Prosocial Ratio:
-    Calculates the fraction of recommendations labeled prosocial.
-    """
-    if len(feed) == 0:
-        return 0.0
+# -----------------------------
+# Prosocial ratio
+# -----------------------------
 
-    return float(feed[prosocial_col].mean())
+def prosocial_ratio(feed, prosocial_col="prosocial"):
+    """
+    Prosocial ratio:
+    Calculates the fraction of recommendations labeled prosocial (0/1).
+    """
+    if feed is None or len(feed) == 0:
+        return 0.0
+    if prosocial_col not in feed.columns:
+        raise ValueError(f"Missing column '{prosocial_col}' in feed")
+
+    vals = pd.to_numeric(feed[prosocial_col], errors="coerce").fillna(0)
+    vals = vals.clip(0, 1)
+
+    return float(vals.mean())
