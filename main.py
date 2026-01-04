@@ -15,10 +15,11 @@ if __name__ == "__main__":
 import pandas as pd
 
 from algorithm import WEIGHTS, add_engagement, rank_baseline, build_prototype_feed
+from metrics import diversity_at_k, max_streak, prosocial_ratio
 
 def main():
     # 1) Load final tagged dataset
-    df = pd.read_csv("shorts_dataset_tagged.csv")  # imported-from-Drive file
+    df = pd.read_csv("datasets/shorts_dataset_tagged.csv")  # imported-from-Drive file
     print("Loaded:", df.shape)
     print(df[["topic", "tone", "prosocial", "risk"]].head(10))
 
@@ -42,13 +43,26 @@ def main():
     print("\nBaseline top 5:")
     print(baseline[["title", "channel", "topic", "engagement"]].head(5))
     print("\nmax_views:", max_views)
-
+    
     # Step 4: Prototype with diversity (dynamic)
     w = WEIGHTS["entertainment"]
-    prototype_feed = build_prototype_feed(df, weights=w, k=20, recent_window=10)
+    prototype_feed = build_prototype_feed(df, weights=w, k=100, recent_window=10)
 
     print("\nPrototype top 10:") 
     print(prototype_feed[["title","topic","channel","prosocial","risk","engagement","diversity","score"]].head(10))
 
+    # Step 5: Assess prototype feed against design criteria
+    # (Use k=100 for evaluation of full feed)
+    d10 = diversity_at_k(prototype_feed, k=10, topic_col="topic")
+    topic_streak = max_streak(prototype_feed, "topic")
+    creator_streak = max_streak(prototype_feed, "channel")
+    p_ratio = prosocial_ratio(prototype_feed, prosocial_col="prosocial")
+
+    print("\nMetrics")
+    print("diversity@10 =", d10, "(target >= 4)")
+    print("max topic streak =", topic_streak, "(target <= 2)")
+    print("max creator streak =", creator_streak, "(target <= 2)")
+    print("prosocial ratio =", round(p_ratio, 3), "(target >= 0.25)")
+    
 if __name__ == "__main__":
     main()

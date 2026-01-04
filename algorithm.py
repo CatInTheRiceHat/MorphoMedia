@@ -15,9 +15,11 @@ def add_engagement(df):
     df["engagement"] = df["view_count"] / max_views
     return df, max_views
 
+
 def rank_baseline(df, k=20):
     """Return top-k videos ranked by engagement only."""
     return df.sort_values("engagement", ascending=False).head(k)
+
 
 def diversity_bonus_topic_creator(topic, channel, recent_topics, recent_channels):
     """
@@ -29,9 +31,23 @@ def diversity_bonus_topic_creator(topic, channel, recent_topics, recent_channels
     creator_new = 1 if channel not in recent_channels else 0
     return 0.5 * topic_new + 0.5 * creator_new
 
+
 def score_parts(e, d, p, r, w):
     """Compute total score using weights."""
     return (e * w["e"]) + (d * w["d"]) + (p * w["p"]) - (r * w["r"])
+
+
+def would_break_streak(recent_list, candidate_value, max_streak=2):
+    """
+    Returns True if adding candidate_value would create a streak longer than max_streak.
+    Ex: if recent_list ends with ["comedy","comedy"] and candidate_value is "comedy",
+    then max_streak=2 would be broken.
+    """
+    if len(recent_list) < max_streak:
+        return False
+    tail = list(recent_list)[-max_streak:]
+    return all(x == candidate_value for x in tail)
+
 
 def build_prototype_feed(df, weights=WEIGHTS["entertainment"], k=20, recent_window=10):
     """
@@ -55,9 +71,18 @@ def build_prototype_feed(df, weights=WEIGHTS["entertainment"], k=20, recent_wind
         score_list = []
 
         for _, row in remaining.iterrows():
+            topic = row["topic"]
+            channel = row["channel"]
+
+            # Prevent 3-in-a-row topic or creator
+            if would_break_streak(recent_topics, topic, max_streak=2) or would_break_streak(recent_channels, channel, max_streak=2):
+                diversity_list.append(0.0)
+                score_list.append(float("-inf"))  # impossible to choose
+                continue
+
             d = diversity_bonus_topic_creator(
-                row["topic"],
-                row["channel"],
+                topic,
+                channel,
                 window_topics,
                 window_channels
             )
@@ -74,6 +99,30 @@ def build_prototype_feed(df, weights=WEIGHTS["entertainment"], k=20, recent_wind
         remaining = remaining.copy()
         remaining["diversity"] = diversity_list
         remaining["score"] = score_list
+
+        # If everything is blocked (all -inf), relax the rule for this one pick
+        if remaining["score"].max() == float("-inf"):
+            diversity_list = []
+            score_list = []
+            for _, row in remaining.iterrows():
+                d = diversity_bonus_topic_creator(
+                    row["topic"],
+                    row["channel"],
+                    window_topics,
+                    window_channels
+                )
+                s = score_parts(
+                    e=row["engagement"],
+                    d=d,
+                    p=row["prosocial"],
+                    r=row["risk"],
+                    w=weights
+                )
+                diversity_list.append(d)
+                score_list.append(s)
+
+            remaining["diversity"] = diversity_list
+            remaining["score"] = score_list
 
         best_idx = remaining["score"].idxmax()
         best_row = remaining.loc[best_idx]
