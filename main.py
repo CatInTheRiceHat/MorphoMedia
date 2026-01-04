@@ -14,6 +14,8 @@ if __name__ == "__main__":
 
 import pandas as pd
 
+from algorithm import WEIGHTS, add_engagement, rank_baseline, build_prototype_feed
+
 def main():
     # 1) Load final tagged dataset
     df = pd.read_csv("shorts_dataset_tagged.csv")  # imported-from-Drive file
@@ -40,6 +42,13 @@ def main():
     print("\nBaseline top 5:")
     print(baseline[["title", "channel", "topic", "engagement"]].head(5))
     print("\nmax_views:", max_views)
+
+    # Step 4: Prototype with diversity (dynamic)
+    w = WEIGHTS["entertainment"]
+    prototype_feed = build_prototype_feed(df, weights=w, k=20, recent_window=10)
+
+    print("\nPrototype top 10:") 
+    print(prototype_feed[["title","topic","channel","prosocial","risk","engagement","diversity","score"]].head(10))
 
 if __name__ == "__main__":
     main()
