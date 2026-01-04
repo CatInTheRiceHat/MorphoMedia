@@ -1,6 +1,7 @@
 """
-Ranking algorithms for the project.
+Testing different algorithms for the project.
 
+Baseline: engagement only ranking (Used in many short-video apps)
 Prototype: engagement + diversity (topic+creator) + prosocial - risk
 """
 
