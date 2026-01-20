@@ -60,10 +60,10 @@ def run_demo(df, preset, night_mode):
     print("\nPreset:", PRESET, "| Night mode:", NIGHT_MODE, "| k:", k)
     print_metrics(feed, label)
 
+
 # -----------------------------
 # Main
 # -----------------------------
-
 
 def main():
     # Load dataset

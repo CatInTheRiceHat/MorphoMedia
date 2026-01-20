@@ -76,3 +76,40 @@ def prosocial_ratio(feed, prosocial_col="prosocial"):
     vals = vals.clip(0, 1)
 
     return float(vals.mean())
+
+
+# -----------------------------
+# Overlap vs baseline (similarity)
+# -----------------------------
+
+def overlap_ratio(ids_a, ids_b, top_n=10):
+    """
+    Overlap ratio:
+    Looks at the first top_n IDs from two feeds and returns:
+    (# of shared IDs) / top_n
+
+    Example: 0.3 means 3 of the top 10 are the same.
+    """
+    if top_n <= 0:
+        return 0.0
+
+    set_a = set(ids_a[:top_n])
+    set_b = set(ids_b[:top_n])
+    return len(set_a & set_b) / float(top_n)
+
+
+def jaccard_similarity(ids_a, ids_b, top_n=10):
+    """
+    Jaccard similarity:
+    Another similarity score:
+    |A ∩ B| / |A ∪ B|
+
+    Higher = more similar overall.
+    0.0 = no overlap, 1.0 = identical sets.
+    """
+    set_a = set(ids_a[:top_n])
+    set_b = set(ids_b[:top_n])
+    union_size = len(set_a | set_b)
+    if union_size == 0:
+        return 0.0
+    return len(set_a & set_b) / float(union_size)
