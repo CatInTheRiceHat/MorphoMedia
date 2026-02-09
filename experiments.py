@@ -49,7 +49,9 @@ TARGET_RUNTIME_SEC_PER_100 = 2.0
 # -----------------------------
 
 def feed_ids(feed, id_col=ID_COL):
-    """Convert a feed DataFrame into a list of IDs for overlap checking."""
+    """
+    Convert a feed DataFrame into a list of IDs for overlap checking.
+    """
     if feed is None or len(feed) == 0:
         return []
     if id_col not in feed.columns:
@@ -58,7 +60,9 @@ def feed_ids(feed, id_col=ID_COL):
 
 
 def runtime_per_100(runtime_sec, k):
-    """Scale runtime to seconds per 100 posts so k=15 and k=100 compare fairly."""
+    """
+    Scale runtime to seconds per 100 posts so k=15 and k=100 compare fairly.
+    """
     if k <= 0:
         return float("inf")
     return runtime_sec * (100.0 / float(k))
@@ -87,8 +91,12 @@ def run_one(df_seed, preset, night_mode, seed, recent_window, overlap_topn):
     t_sec = float(t1 - t0)
     t_per_100 = runtime_per_100(t_sec, k)
 
-    # Baseline feed (for overlap only)
+    # Baseline feed (timed)
+    t0_base = time.perf_counter()
     base_feed = rank_baseline(df_seed, k=k).reset_index(drop=True)
+    t1_base = time.perf_counter()
+    t_sec_base = float(t1_base - t0_base)
+    t_per_100_base = runtime_per_100(t_sec_base, k)
 
     # Metrics
     d10 = diversity_at_k(proto_feed, k=10, topic_col=TOPIC_COL)
@@ -113,7 +121,31 @@ def run_one(df_seed, preset, night_mode, seed, recent_window, overlap_topn):
     overlapk = overlap_ratio(proto_ids, base_ids, top_n=min(
         k, len(proto_ids), len(base_ids)))
 
-    return {
+    # Baseline metrics
+    base_d10 = diversity_at_k(base_feed, k=10, topic_col=TOPIC_COL)
+    base_topic_streak = max_streak(base_feed, TOPIC_COL)
+    base_creator_streak = max_streak(base_feed, CREATOR_COL)
+    base_psr = prosocial_ratio(base_feed, prosocial_col=PROSOCIAL_COL)
+
+    base_pass_div = (base_d10 >= TARGET_DIVERSITY_AT_10)
+    base_pass_topic = (base_topic_streak <= TARGET_MAX_STREAK)
+    base_pass_creator = (base_creator_streak <= TARGET_MAX_STREAK)
+    base_pass_prosocial = (base_psr >= TARGET_PROSOCIAL_RATIO)
+    base_pass_runtime = (t_per_100_base <= TARGET_RUNTIME_SEC_PER_100)
+    base_overall_pass = all([
+        base_pass_div,
+        base_pass_topic,
+        base_pass_creator,
+        base_pass_prosocial,
+        base_pass_runtime,
+    ])
+
+    base_overlap10 = overlap_ratio(base_ids, base_ids, top_n=overlap_topn)
+    base_overlapk = overlap_ratio(
+        base_ids, base_ids, top_n=min(k, len(base_ids))
+    )
+
+    proto_row = {
         "preset": preset,
         "night_mode": night_mode,
         "seed": seed,
@@ -133,6 +165,29 @@ def run_one(df_seed, preset, night_mode, seed, recent_window, overlap_topn):
         "overlap_ratio_top10": overlap10,
         "overlap_ratio_topk": overlapk,
     }
+
+    base_row = {
+        "preset": "baseline",
+        "night_mode": night_mode,
+        "seed": seed,
+        "k": k,
+        "diversity_at_10": base_d10,
+        "max_topic_streak": base_topic_streak,
+        "max_creator_streak": base_creator_streak,
+        "prosocial_ratio": base_psr,
+        "runtime_sec": t_sec_base,
+        "runtime_sec_per_100": t_per_100_base,
+        "pass_diversity": base_pass_div,
+        "pass_topic_streak": base_pass_topic,
+        "pass_creator_streak": base_pass_creator,
+        "pass_prosocial": base_pass_prosocial,
+        "pass_runtime": base_pass_runtime,
+        "overall_pass": base_overall_pass,
+        "overlap_ratio_top10": base_overlap10,
+        "overlap_ratio_topk": base_overlapk,
+    }
+
+    return [proto_row, base_row]
 
 
 # -----------------------------
@@ -180,7 +235,7 @@ def summarize(df_raw):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dataset", default="datasets/shorts_dataset_tagged.csv")
-    ap.add_argument("--outdir", default="results")
+    ap.add_argument("--outdir", default="results/data")
     ap.add_argument("--n_sessions", type=int, default=10)  # seeds 0..n-1
     ap.add_argument("--recent_window", type=int, default=10)
     ap.add_argument("--overlap_topn", type=int, default=10)
@@ -201,7 +256,7 @@ def main():
 
         for preset in PRESETS:
             for night_mode in [False, True]:
-                rows.append(
+                rows.extend(
                     run_one(
                         df_seed=df_seed,
                         preset=preset,
