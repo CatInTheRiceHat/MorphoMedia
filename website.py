@@ -5,6 +5,7 @@ Lightweight web app for Healthy Feed Algorithm using only stdlib + existing proj
 from __future__ import annotations
 
 import json
+import os
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
@@ -23,8 +24,9 @@ from algorithm import (
 from metrics import diversity_at_k, max_streak, prosocial_ratio
 
 
-HOST = "127.0.0.1"
-PORT = 8080
+# Render expects web services to bind 0.0.0.0 on the provided PORT.
+HOST = "0.0.0.0"
+PORT = int(os.environ.get("PORT", "8080"))
 ROOT = Path(__file__).parent
 WEB_DIR = ROOT / "website"
 DEFAULT_DATASET = ROOT / "datasets" / "shorts_dataset_tagged.csv"
