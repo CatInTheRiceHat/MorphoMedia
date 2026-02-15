@@ -1,0 +1,884 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MorphoMedia | Wellbeing-First Recommendation Prototype</title>
+  <style>
+    :root{
+      --bg:#b7c6d3;
+      --surface:#f8fbff;
+      --ink:#0c102c;
+      --muted:#2f3b7a;
+      --line:#86c8d4;
+      --primary:#2f3b7a;
+      --secondary:#3f9bc7;
+      --ok:#0f7a4f;
+      --warn:#a44b22;
+      --accent-grad:linear-gradient(90deg,#0c102c,#2f3b7a,#3f9bc7,#86c8d4,#b7c6d3);
+      --shadow:0 8px 28px rgba(12,16,44,.12);
+      --radius:14px;
+      --focus:0 0 0 3px rgba(63,155,199,.35);
+    }
+
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0}
+    body{
+      position:relative;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      color:var(--ink);
+      background:
+        radial-gradient(1200px 500px at 100% -20%, rgba(63,155,199,.25), transparent 60%),
+        radial-gradient(900px 380px at -10% 0%, rgba(47,59,122,.16), transparent 60%),
+        var(--bg);
+      line-height:1.45;
+    }
+
+    .container{
+      width:min(1120px, 92vw);
+      margin:0 auto;
+      padding:24px 0 48px;
+      position:relative;
+      z-index:1;
+    }
+
+    .card{
+      background:var(--surface);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+    }
+
+    header.hero{
+      position:relative;
+      padding:28px;
+      margin-bottom:18px;
+    }
+
+    h1{
+      margin:0 0 6px;
+      font-size:clamp(1.6rem, 2.7vw, 2.4rem);
+      letter-spacing:.2px;
+    }
+    .subtitle{
+      margin:0;
+      color:var(--muted);
+      font-size:1.02rem;
+      max-width:70ch;
+      text-transform:capitalize;
+    }
+
+    main{
+      display:grid;
+      gap:14px;
+    }
+
+    section{
+      padding:18px;
+      position:relative;
+    }
+
+    section h2{
+      margin:0 0 10px;
+      font-size:1.08rem;
+      position:relative;
+      display:inline-block;
+      padding-bottom:8px;
+    }
+
+    section h2::after{
+      content:"";
+      position:absolute;
+      left:0; bottom:0;
+      width:100%;
+      height:3px;
+      border-radius:99px;
+      background:var(--accent-grad);
+      opacity:.8;
+    }
+
+    section::before{
+      content:"";
+      position:absolute;
+      top:0; right:0;
+      width:64px; height:64px;
+      background:radial-gradient(circle at 100% 0%, rgba(134,200,212,.45), transparent 70%);
+      border-top-right-radius:var(--radius);
+      pointer-events:none;
+    }
+
+    .muted{color:var(--muted)}
+    ul{margin:8px 0 0 18px;padding:0}
+    li{margin:4px 0}
+
+    .criteria{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(180px,1fr));
+      gap:10px;
+      margin-top:6px;
+    }
+    .metric-chip{
+      border:1px solid #86c8d4;
+      background:#e9f4f7;
+      border-radius:999px;
+      padding:8px 12px;
+      color:#2f3b7a;
+      font-size:.92rem;
+    }
+
+    .formula{
+      padding:10px 12px;
+      border:1px dashed #3f9bc7;
+      border-radius:12px;
+      background:#eef6fb;
+      font-family:"Cambria Math","STIX Two Text","Times New Roman",serif;
+      font-size:1.15rem;
+      letter-spacing:.2px;
+      margin:10px 0 14px;
+    }
+
+    .formula .mvar{font-style:italic}
+    .formula sub{
+      font-size:.78em;
+      vertical-align:-0.2em;
+      font-style:normal;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:.92rem;
+      border:1px solid var(--line);
+      border-radius:12px;
+      overflow:hidden;
+    }
+    th, td{
+      padding:10px;
+      border-bottom:1px solid var(--line);
+      text-align:left;
+    }
+    th{
+      background:#d6eaf2;
+      color:#2f3b7a;
+      font-weight:700;
+    }
+
+    .demo-layout{
+      display:grid;
+      grid-template-columns:minmax(360px, 1fr) minmax(360px, 430px);
+      gap:18px;
+      align-items:start;
+      justify-content:space-between;
+    }
+
+    .control-stack{display:grid; gap:10px;}
+    .row{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+
+    label{
+      display:block;
+      font-weight:600;
+      font-size:.92rem;
+      margin-bottom:4px;
+      color:#2f3b7a;
+    }
+
+    select, button{
+      width:100%;
+      font:inherit;
+      border-radius:12px;
+      border:1px solid #86c8d4;
+      min-height:52px;
+      padding:12px 14px;
+      background:#fff;
+      color:var(--ink);
+    }
+    button{
+      border:none;
+      background:var(--primary);
+      color:#fff;
+      font-weight:700;
+      cursor:pointer;
+      transition:transform .18s ease, box-shadow .18s ease, filter .18s ease;
+    }
+    button:hover{
+      transform:translateY(-1px);
+      box-shadow:0 10px 26px rgba(47,59,122,.26), 0 0 0 1px rgba(134,200,212,.55);
+      filter:saturate(1.04);
+    }
+
+    :focus-visible{
+      outline:none;
+      box-shadow:var(--focus);
+    }
+
+    .stat-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+      margin-top:10px;
+    }
+    .stat{
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:#edf6fa;
+      padding:8px;
+    }
+    .stat strong{
+      display:block;
+      color:#2f3b7a;
+      font-size:.82rem;
+      margin-bottom:2px;
+    }
+
+    .feed-shell{
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:#edf6fa;
+      padding:10px;
+      width:min(420px, 100%);
+      margin:0 auto;
+    }
+    .shorts-feed{
+      height:82vh;
+      overflow-y:auto;
+      scroll-snap-type:y mandatory;
+      display:grid;
+      gap:0;
+      padding:0;
+      border-radius:12px;
+      background:#0c102c;
+    }
+    .post-card{
+      scroll-snap-align:start;
+      min-height:82vh;
+      border:1px solid #86c8d4;
+      border-radius:16px;
+      padding:0;
+      background:#ffffff;
+      position:relative;
+      overflow:hidden;
+      box-shadow:0 10px 24px rgba(11,61,145,.07);
+      transition:transform .2s ease, box-shadow .2s ease;
+    }
+    .post-card:hover{
+      transform:translateY(-2px);
+      box-shadow:0 14px 28px rgba(11,61,145,.12);
+    }
+
+    .post-video{
+      border-radius:16px;
+      height:100%;
+      width:100%;
+      border:0;
+      background:
+        radial-gradient(60% 80% at 20% 20%, rgba(63,155,199,.35), transparent 70%),
+        linear-gradient(160deg,#d6eaf2,#f8fbff 45%,#e9f4f7);
+      overflow:hidden;
+    }
+
+    .post-video iframe{
+      width:100%;
+      height:100%;
+      border:0;
+      display:block;
+      background:#0c102c;
+    }
+    .yt-player{
+      width:100%;
+      height:100%;
+      background:#0c102c;
+    }
+
+    .post-fallback{
+      width:100%;
+      height:100%;
+      display:grid;
+      place-items:center;
+      text-align:center;
+      padding:12px;
+      color:#2f3b7a;
+      font-weight:700;
+      font-size:1.05rem;
+    }
+    .post-fallback a{
+      color:#2f3b7a;
+      text-decoration:underline;
+    }
+
+    .post-overlay{
+      position:absolute;
+      left:0;
+      right:0;
+      bottom:0;
+      padding:12px;
+      display:grid;
+      gap:8px;
+      background:linear-gradient(180deg, rgba(12,16,44,0) 0%, rgba(12,16,44,0.78) 52%, rgba(12,16,44,0.94) 100%);
+      color:#f0f7ff;
+    }
+
+    .chips{display:flex;gap:6px;flex-wrap:wrap}
+    .chip{
+      background:rgba(233,244,247,0.95);
+      border:1px solid #86c8d4;
+      color:#2f3b7a;
+      border-radius:999px;
+      padding:4px 8px;
+      font-size:.76rem;
+    }
+
+    .post-meta{
+      font-size:.9rem;
+      color:#f0f7ff;
+      text-shadow:0 1px 2px rgba(12,16,44,.5);
+    }
+
+    .good{color:var(--ok)}
+    .warn{color:var(--warn)}
+
+    .refs li{font-size:.92rem}
+
+    footer{
+      margin-top:16px;
+      color:var(--muted);
+      font-size:.85rem;
+      text-align:center;
+    }
+
+    @media (max-width:980px){
+      .demo-layout, .row, .criteria, .stat-grid{grid-template-columns:1fr}
+      .feed-shell{width:min(390px,100%)}
+      .shorts-feed{height:70vh}
+      .post-card{min-height:70vh}
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      *{animation:none !important; transition:none !important; scroll-behavior:auto !important;}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="hero card">
+      <h1>MorphoMedia: Designing a New Algorithm to Reduce Social-Media Overuse and Improve Teen Well-Being</h1>
+      <p class="subtitle">Healthy Feed Recommendation Algorithm Prototype</p>
+    </header>
+
+    <main>
+      <section class="card">
+        <h2>Problem</h2>
+        <p class="muted">
+          A lot of social media feeds are built to keep people watching for as long as possible. That can lead to
+          repetitive posts, risky content, and too much screen time. Teens can end up stuck in scroll loops that hurt
+          focus, sleep, and mood.
+        </p>
+      </section>
+
+      <section class="card">
+        <h2>Goal</h2>
+        <p class="muted">
+          My goal is to design a recommendation system that still feels interesting, but is healthier. I want it to
+          show more positive and useful content, reduce repetition, and lower risky posts while still running fast on
+          a normal computer.
+        </p>
+        <p class="muted">
+          I chose the name <strong>MorphoMedia</strong> because of the Blue Morpho butterfly. Its blue color is not
+          from pigment. It comes from tiny structures in its wings that reflect light. That idea matches this project.
+          I want feed quality to come from strong internal design, not from pressure to maximize clicks. In other
+          words, the structure of the algorithm should shape a calmer and more meaningful experience.
+        </p>
+      </section>
+
+      <section class="card">
+        <h2>Design Criteria</h2>
+        <div class="criteria" aria-label="Design criteria metrics">
+          <div class="metric-chip">Diversity@10 &gt;= 4 Topic Categories</div>
+          <div class="metric-chip">Repetition Cap &lt;= 2 (Topic or Creator)</div>
+          <div class="metric-chip">Prosocial Ratio &gt;= 25%</div>
+          <div class="metric-chip">Speed &lt; 2.0 Seconds per 100 Posts</div>
+          <div class="metric-chip">CPU-Only</div>
+          <div class="metric-chip">Python libraries: NumPy, pandas, scikit-learn, random, time</div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>How the Algorithm Works</h2>
+        <div class="formula">
+          <span class="mvar">Score</span> = <span class="mvar">e</span>w<sub>1</sub> + <span class="mvar">d</span>w<sub>2</sub> + <span class="mvar">p</span>w<sub>3</sub> - <span class="mvar">r</span>w<sub>4</sub>
+        </div>
+        <p class="muted">
+          In simple terms, the algorithm gives each post a final score. It rewards engagement, diversity, and
+          prosocial value, then subtracts risk. Different presets change how much each part matters.
+        </p>
+        <table aria-label="Preset weights">
+          <thead>
+            <tr>
+              <th>Preset</th>
+              <th>Engagement (w1)</th>
+              <th>Diversity (w2)</th>
+              <th>Prosocial (w3)</th>
+              <th>Risk (w4)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Entertainment</td><td>55</td><td>20</td><td>15</td><td>10</td></tr>
+            <tr><td>Inspiration</td><td>30</td><td>40</td><td>20</td><td>10</td></tr>
+            <tr><td>Learning</td><td>30</td><td>30</td><td>30</td><td>10</td></tr>
+          </tbody>
+        </table>
+        <p class="muted" style="margin-top:10px">
+          Night Mode shows 15 posts, increases risk weight by +5%, and is intended to start 1 hour before bedtime.
+        </p>
+      </section>
+
+      <section class="card">
+        <h2>Interactive Demo</h2>
+        <div class="demo-layout">
+          <div class="control-stack">
+            <div class="row">
+              <div>
+                <label for="preset">Preset</label>
+                <select id="preset">
+                  <option value="entertainment">Entertainment</option>
+                  <option value="inspiration">Inspiration</option>
+                  <option value="learning">Learning</option>
+                </select>
+              </div>
+              <div>
+                <label for="night">Night Mode</label>
+                <select id="night">
+                  <option value="false">Off</option>
+                  <option value="true">On</option>
+                </select>
+              </div>
+            </div>
+
+            <button id="generateBtn" type="button">Generate Feed</button>
+
+            <div class="stat-grid" aria-live="polite">
+              <div class="stat"><strong>Diversity@10</strong><span id="m-diversity">-</span></div>
+              <div class="stat"><strong>Longest Repetition Streak</strong><span id="m-streak">-</span></div>
+              <div class="stat"><strong>Prosocial Ratio</strong><span id="m-prosocial">-</span></div>
+              <div class="stat"><strong>Generation Time</strong><span id="m-time">-</span></div>
+            </div>
+
+            <p id="status" class="muted">Ready to test. Click Generate Feed.</p>
+          </div>
+
+          <div class="feed-shell" aria-label="Generated shorts feed">
+            <div class="shorts-feed" id="feed">
+              <article class="post-card">
+                <div class="post-video"><div class="post-fallback">Your generated feed will appear here.</div></div>
+                <div class="post-overlay">
+                  <div class="post-meta muted">This panel copies the vertical scroll style of short video apps.</div>
+                </div>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Testing Plan</h2>
+        <ul>
+          <li>Run multiple seeds and shuffled orders to check consistency.</li>
+          <li>Compare MorphoMedia against an engagement-only baseline feed.</li>
+          <li>Track pass rates for Diversity, Repetition, and Prosocial Ratio guardrails.</li>
+          <li>Measure runtime in a CPU-Only environment.</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>Bibliography</h2>
+        <ul class="refs">
+          <li>Twenge, J. et al. (Placeholder). Teen well-being and social media usage patterns.</li>
+          <li>Kross, E. et al. (Placeholder). Social media and adolescent mental health outcomes.</li>
+          <li>YouTube Recommendation System Overview (Placeholder Technical Reference).</li>
+          <li>ACM Fairness and Transparency in Recommender Systems (Placeholder).</li>
+          <li>WHO Youth Digital Well-Being Guidance (Placeholder).</li>
+          <li>Pew Research Center Teen Internet Report (Placeholder).</li>
+        </ul>
+      </section>
+    </main>
+
+    <footer>Student engineering prototype • MorphoMedia</footer>
+  </div>
+
+  <script>
+    const POSTS = [
+      { video_id:"RLP2T7uZUUk", title:"Scaring kids on YouTube shorts @tyler.vitelli", creator:"Nick Wilkins", topic:"comedy", tone:"negative", prosocial_score:0.00, engagement_score:0.12, risk_score:1.00 },
+      { video_id:"YBqzclR5RKU", title:"How did I guess! @ryder_smith4 #shortsfeed #lipsyncs #funny", creator:"Alli Ingram", topic:"entertainment", tone:"positive", prosocial_score:0.00, engagement_score:0.00, risk_score:0.00 },
+      { video_id:"sLEy5-l7WVY", title:"Wait for it... #relatable #couple #shorts", creator:"Brooke Monk", topic:"entertainment", tone:"positive", prosocial_score:0.00, engagement_score:0.17, risk_score:0.00 },
+      { video_id:"SYCZjvKqeZ4", title:"Christmas Matching Challenge With My Wife", creator:"The CAN Family", topic:"entertainment", tone:"positive", prosocial_score:0.00, engagement_score:0.00, risk_score:0.00 },
+      { video_id:"XBDFfu7CGF4", title:"Perks of being in the front row #shorts", creator:"Alex Sampson", topic:"music_dance", tone:"positive", prosocial_score:0.00, engagement_score:0.04, risk_score:0.00 },
+      { video_id:"aU5MtRCSG9o", title:"Kpop Demon Hunters short", creator:"Shorts Voltz", topic:"entertainment", tone:"neutral", prosocial_score:0.00, engagement_score:0.22, risk_score:0.00 },
+      { video_id:"mlMuBd2Pd7A", title:"Street photography clothing short", creator:"liuxiaoyi", topic:"lifestyle", tone:"neutral", prosocial_score:0.00, engagement_score:0.09, risk_score:1.00 },
+      { video_id:"FC-0QDx3M-U", title:"Are you smarter than a 5th grader?", creator:"KFoltyn", topic:"education", tone:"neutral", prosocial_score:1.00, engagement_score:0.04, risk_score:0.00 },
+      { video_id:"XyCcAutpSJE", title:"Aggressive ASMR #shorts", creator:"Mildreamy ASMR", topic:"entertainment", tone:"neutral", prosocial_score:0.00, engagement_score:0.11, risk_score:0.00 },
+      { video_id:"D-DxZYpmVR0", title:"My Sibling's On The Naughty List", creator:"Shooteo", topic:"comedy", tone:"positive", prosocial_score:0.00, engagement_score:0.00, risk_score:0.00 },
+      { video_id:"0elKiZ9C7jY", title:"This trend is so fun #shorts", creator:"Jonathan Joly", topic:"entertainment", tone:"positive", prosocial_score:0.00, engagement_score:0.00, risk_score:0.00 },
+      { video_id:"cTI7DowW4sk", title:"I WILL ALWAYS BE THERE FOR YOU", creator:"The Mir Fam", topic:"lifestyle", tone:"positive", prosocial_score:1.00, engagement_score:0.00, risk_score:0.00 },
+      { video_id:"IXx-lvDK2fo", title:"You have thing called FINGER #funny", creator:"INAFISH", topic:"comedy", tone:"positive", prosocial_score:0.00, engagement_score:0.10, risk_score:0.00 },
+      { video_id:"WE9G0HGMvnw", title:"Which Girl Will He Pick? #Shorts", creator:"Brat TV", topic:"entertainment", tone:"neutral", prosocial_score:0.00, engagement_score:0.04, risk_score:0.00 },
+      { video_id:"FXXLWfoHotc", title:"POV MY SISTERS ARE 14 YRS YOUNGER", creator:"JUSTKASS", topic:"comedy", tone:"positive", prosocial_score:0.00, engagement_score:0.02, risk_score:0.00 }
+    ];
+
+    const PRESETS = {
+      entertainment: { e:0.55, d:0.20, p:0.15, r:0.10 },
+      inspiration:   { e:0.30, d:0.40, p:0.20, r:0.10 },
+      learning:      { e:0.30, d:0.30, p:0.30, r:0.10 }
+    };
+
+    const PROSOCIAL_THRESHOLD = 0.60;
+    const TARGET_PROSOCIAL_RATIO = 0.25;
+    const FEED_SIZE = 15;
+    let embedStatus = new Map();
+    let embedChecked = false;
+
+    const $ = (id) => document.getElementById(id);
+
+    function normalizeWeights(w){
+      const sum = w.e + w.d + w.p + w.r;
+      return { e:w.e/sum, d:w.d/sum, p:w.p/sum, r:w.r/sum };
+    }
+
+    function getModeSettings(){
+      const preset = $("preset").value;
+      const nightMode = $("night").value === "true";
+      let w = { ...PRESETS[preset] };
+
+      if(nightMode){
+        w.r += 0.05;
+        w = normalizeWeights(w);
+      }
+      return { preset, nightMode, weights:w, k:FEED_SIZE };
+    }
+
+    async function ensureEmbedStatus(){
+      if (embedChecked) return;
+      const ids = [...new Set(POSTS.map(p => p.video_id).filter(Boolean))];
+      if (!ids.length) {
+        embedChecked = true;
+        return;
+      }
+      try {
+        const res = await fetch("/api/check/embed", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ video_ids: ids })
+        });
+        const data = await res.json();
+        if (res.ok && data && data.status) {
+          Object.entries(data.status).forEach(([id, ok]) => embedStatus.set(id, !!ok));
+        }
+      } catch (_) {
+        // Keep unknown ids usable if check endpoint/network fails.
+      } finally {
+        embedChecked = true;
+      }
+    }
+
+    function isProsocial(post){
+      return post.prosocial_score >= PROSOCIAL_THRESHOLD;
+    }
+
+    function calcBaseScore(post, w){
+      return (post.engagement_score * w.e) + (w.p * post.prosocial_score) - (w.r * post.risk_score);
+    }
+
+    function diversityBonus(post, recentTopics, recentCreators){
+      let b = 0;
+      if(!recentTopics.includes(post.topic)) b += 0.5;
+      if(!recentCreators.includes(post.creator)) b += 0.5;
+      return b;
+    }
+
+    function wouldBreakStreak(feed, candidate, maxStreak=2){
+      if(feed.length < maxStreak) return false;
+      const tail = feed.slice(-maxStreak);
+      const sameTopic = tail.every(p => p.topic === candidate.topic);
+      const sameCreator = tail.every(p => p.creator === candidate.creator);
+      return sameTopic || sameCreator;
+    }
+
+    function longestStreak(feed){
+      let tMax = 1, cMax = 1, tRun = 1, cRun = 1;
+      for(let i=1;i<feed.length;i++){
+        tRun = (feed[i].topic === feed[i-1].topic) ? tRun+1 : 1;
+        cRun = (feed[i].creator === feed[i-1].creator) ? cRun+1 : 1;
+        tMax = Math.max(tMax, tRun);
+        cMax = Math.max(cMax, cRun);
+      }
+      return Math.max(tMax, cMax);
+    }
+
+    function diversityAt10(feed){
+      return new Set(feed.slice(0,10).map(p => p.topic)).size;
+    }
+
+    function prosocialRatio(feed){
+      const count = feed.filter(isProsocial).length;
+      return feed.length ? count / feed.length : 0;
+    }
+
+    function rankWithGuardrails(posts, w, k){
+      const pool = posts.map((p, i) => ({ ...p, id:i, base:calcBaseScore(p, w) }));
+      const used = new Set();
+      const feed = [];
+
+      while(feed.length < k && used.size < pool.length){
+        const recentTopics = feed.slice(-10).map(p => p.topic);
+        const recentCreators = feed.slice(-10).map(p => p.creator);
+        const currentTop10Topics = new Set(feed.slice(0,10).map(p => p.topic));
+        const stillNeedTopics = Math.max(0, 4 - currentTop10Topics.size);
+        const slotsLeftTo10 = Math.max(0, 10 - feed.length);
+        const mustPickNewTopic = feed.length < 10 && stillNeedTopics > 0 && slotsLeftTo10 <= stillNeedTopics;
+
+        let candidates = pool
+          .filter(p => !used.has(p.id))
+          .filter(p => !wouldBreakStreak(feed, p));
+
+        if(!candidates.length){
+          candidates = pool.filter(p => !used.has(p.id));
+        }
+
+        if(mustPickNewTopic){
+          const unseen = candidates.filter(c => !currentTop10Topics.has(c.topic));
+          if(unseen.length) candidates = unseen;
+        }
+
+        candidates.sort((a,b)=>{
+          const aScore = a.base + (w.d * diversityBonus(a, recentTopics, recentCreators));
+          const bScore = b.base + (w.d * diversityBonus(b, recentTopics, recentCreators));
+          return bScore - aScore;
+        });
+
+        const best = candidates[0];
+        if(!best) break;
+        used.add(best.id);
+        feed.push(best);
+      }
+
+      if(prosocialRatio(feed) < TARGET_PROSOCIAL_RATIO){
+        const replacements = pool
+          .filter(p => !used.has(p.id) && isProsocial(p))
+          .sort((a,b)=>b.base-a.base);
+
+        for(const candidate of replacements){
+          if(prosocialRatio(feed) >= TARGET_PROSOCIAL_RATIO) break;
+
+          for(let i=feed.length-1; i>=0; i--){
+            if(isProsocial(feed[i])) continue;
+            const original = feed[i];
+            feed[i] = candidate;
+
+            if(longestStreak(feed) <= 2){
+              used.add(candidate.id);
+              used.delete(original.id);
+              break;
+            } else {
+              feed[i] = original;
+            }
+          }
+        }
+      }
+
+      return feed.slice(0,k);
+    }
+
+    let feedObserver = null;
+    let ytApiPromise = null;
+    const playersByCard = new Map();
+
+    function loadYouTubeApi() {
+      if (ytApiPromise) return ytApiPromise;
+      ytApiPromise = new Promise((resolve, reject) => {
+        if (window.YT && window.YT.Player) {
+          resolve();
+          return;
+        }
+
+        const prev = window.onYouTubeIframeAPIReady;
+        window.onYouTubeIframeAPIReady = () => {
+          if (typeof prev === "function") prev();
+          resolve();
+        };
+
+        const script = document.createElement("script");
+        script.src = "https://www.youtube.com/iframe_api";
+        script.async = true;
+        script.onerror = () => reject(new Error("Failed to load YouTube IFrame API"));
+        document.head.appendChild(script);
+
+        setTimeout(() => {
+          if (!(window.YT && window.YT.Player)) {
+            reject(new Error("YouTube IFrame API timeout"));
+          }
+        }, 5000);
+      });
+      return ytApiPromise;
+    }
+
+    function resetPlayers() {
+      if (feedObserver) {
+        feedObserver.disconnect();
+      }
+      playersByCard.forEach((player) => {
+        try { player.destroy(); } catch (_) {}
+      });
+      playersByCard.clear();
+    }
+
+    function setEmbedFallback(card, videoId) {
+      const wrap = card.querySelector(".post-video");
+      if (!wrap) return;
+      wrap.innerHTML =
+        `<div class="post-fallback">This video cannot be embedded here.<br><a href="https://www.youtube.com/watch?v=${videoId}" target="_blank" rel="noopener noreferrer">Open on YouTube</a></div>`;
+    }
+
+    function wireAutoplay(cards) {
+      if (feedObserver) {
+        feedObserver.disconnect();
+      }
+      if (!cards.length) return;
+
+      feedObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          const player = playersByCard.get(entry.target);
+          if (!player) return;
+          try {
+            if (entry.isIntersecting) {
+              player.mute();
+              player.playVideo();
+            } else {
+              player.pauseVideo();
+            }
+          } catch (_) {}
+        });
+      }, { threshold: 0.72 });
+
+      cards.forEach((card) => feedObserver.observe(card));
+    }
+
+    async function initYouTubePlayers(mounts) {
+      resetPlayers();
+      if (!mounts.length) return;
+
+      try {
+        await loadYouTubeApi();
+      } catch (_) {
+        mounts.forEach((m) => setEmbedFallback(m.card, m.videoId));
+        return;
+      }
+
+      mounts.forEach((m, idx) => {
+        try {
+          const player = new window.YT.Player(m.mountId, {
+            videoId: m.videoId,
+            playerVars: {
+              rel: 0,
+              modestbranding: 1,
+              playsinline: 1,
+              controls: 1
+            },
+            events: {
+              onReady: (event) => {
+                try {
+                  event.target.mute();
+                  if (idx === 0) event.target.playVideo();
+                } catch (_) {}
+              },
+              onError: () => {
+                playersByCard.delete(m.card);
+                setEmbedFallback(m.card, m.videoId);
+              }
+            }
+          });
+          playersByCard.set(m.card, player);
+        } catch (_) {
+          setEmbedFallback(m.card, m.videoId);
+        }
+      });
+
+      wireAutoplay(Array.from(playersByCard.keys()));
+    }
+
+    function renderFeed(feed, modeInfo){
+      const box = $("feed");
+      box.innerHTML = "";
+      const playerMounts = [];
+
+      feed.forEach((p, idx) => {
+        const card = document.createElement("article");
+        card.className = "post-card";
+        const videoId = p.video_id || "";
+        const isEmbeddable = videoId ? (embedStatus.get(videoId) !== false) : false;
+        const safeTitle = (p.title || "Video").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const mountId = `yt-player-${Date.now()}-${idx}`;
+        const videoBlock = videoId
+          ? (isEmbeddable
+              ? `<div class="post-video"><div class="yt-player" id="${mountId}" title="${safeTitle}"></div></div>`
+              : `<div class="post-video"><div class="post-fallback">This video cannot be embedded here.<br><a href="https://www.youtube.com/watch?v=${videoId}" target="_blank" rel="noopener noreferrer">Open on YouTube</a></div></div>`)
+          : `<div class="post-video"><div class="post-fallback">${safeTitle}</div></div>`;
+        card.innerHTML = `
+          ${videoBlock}
+          <div class="post-overlay">
+            <div class="chips">
+              <span class="chip">#${idx+1}</span>
+              <span class="chip">${p.topic}</span>
+              <span class="chip">${p.tone}</span>
+              <span class="chip">${modeInfo.preset}</span>
+              ${modeInfo.nightMode ? '<span class="chip">Night Mode</span>' : ''}
+            </div>
+            <div class="post-meta"><strong>Creator:</strong> ${p.creator}</div>
+            <div class="post-meta">
+              <strong>Signals:</strong>
+              engagement ${p.engagement_score.toFixed(2)} | prosocial ${p.prosocial_score.toFixed(2)} | risk ${p.risk_score.toFixed(2)}
+            </div>
+          </div>
+        `;
+        box.appendChild(card);
+        if (videoId && isEmbeddable) {
+          playerMounts.push({ card, mountId, videoId });
+        }
+      });
+      initYouTubePlayers(playerMounts);
+    }
+
+    function updateMetrics(feed, ms){
+      const d10 = diversityAt10(feed);
+      const streak = longestStreak(feed);
+      const pRatio = prosocialRatio(feed);
+
+      $("m-diversity").textContent = `${d10} topic categories`;
+      $("m-streak").textContent = `${streak}`;
+      $("m-prosocial").innerHTML = `<span class="${pRatio >= 0.25 ? "good":"warn"}">${(pRatio*100).toFixed(1)}%</span>`;
+      $("m-time").textContent = `${ms.toFixed(2)} ms`;
+    }
+
+    async function generate(){
+      await ensureEmbedStatus();
+      const mode = getModeSettings();
+      const t0 = performance.now();
+
+      const playablePosts = POSTS.filter((p) => !p.video_id || embedStatus.get(p.video_id) !== false);
+      const pool = playablePosts.length >= 8 ? playablePosts : POSTS;
+      const ranked = rankWithGuardrails(pool, mode.weights, mode.k);
+      const t1 = performance.now();
+
+      renderFeed(ranked, mode);
+      updateMetrics(ranked, t1 - t0);
+      const skipped = POSTS.length - pool.length;
+      $("status").textContent =
+        `Generated ${ranked.length} posts | Preset: ${mode.preset} | Night Mode: ${mode.nightMode ? "On":"Off"}${skipped > 0 ? ` | Skipped ${skipped} non-embeddable videos` : ""}`;
+    }
+
+    $("generateBtn").addEventListener("click", generate);
+    generate();
+  </script>
+</body>
+</html>
